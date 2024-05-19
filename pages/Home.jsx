@@ -6,6 +6,9 @@ import CourseCard from "../components/CourseCard";
 import AppBar from "../components/AppBar";
 import baseURL from "../utils/baseURL";
 import { getSecureStore } from "../utils/SecureStore";
+import { firebase } from "../utils/FirebaseConfig";
+import { getFirestore, collection, getDocs } from "firebase/firestore";
+
 
 export default function Home() {
   const userToken = getSecureStore("userToken");
@@ -14,6 +17,7 @@ export default function Home() {
   const [serverError, setServerError] = useState("");
   const [originalCourseData, setOriginalCourseData] = useState([]);
   const [courses, setCourses] = useState(originalCourseData);
+  
   console.log(userToken)
   useEffect(() => {
     const filteredCourses = originalCourseData.filter((course) =>
@@ -29,26 +33,16 @@ export default function Home() {
   const getCourses = async () => {
     setRefreshing(true);
     try {
-      const url = `${baseURL}/api/dashboard`;
-      const requestOptions = {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${userToken}`,
-        },
-      };
-      const res = await fetch(url, requestOptions);
-      const { data, success, message } = await res.json();
+      const db = getFirestore();
+      const coursesCollection = collection(db, "courses");
 
-      //if get request error then display the error
-      if (!success) {
-        setServerError(message);
-      }
-      //else store the data
-      else {
-        setOriginalCourseData(data);
-        setCourses(data);
-      }
+      const courseSnapshot = await getDocs(coursesCollection);
+      const courseList = courseSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      console.log(courseList); // Log the fetched data
+
+      setOriginalCourseData(courseList);
+      setCourses(courseList);
     } catch (error) {
       setServerError(error.message);
     } finally {

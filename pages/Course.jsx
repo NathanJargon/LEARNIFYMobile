@@ -19,25 +19,23 @@ export default function Course({ route }) {
   const Tab = createMaterialTopTabNavigator();
   const id = route.params.id;
   const imgPath = route.params.imgPath;
-  const [course, setCourse] = useState({});
+  const [course, setCourse] = useState(null);
 
   useEffect(() => {
-    getCourse();
-  }, []);
+    const fetchCourse = async () => {
+      const db = getFirestore();
+      const courseDoc = doc(db, "courses", id);
 
-    const getCourses = async () => {
-      try {
-        const db = getFirestore(firebase);
-        const coursesCollection = collection(db, "courses");
-
-        const courseSnapshot = await getDocs(coursesCollection);
-        const courseList = courseSnapshot.docs.map(doc => doc.data());
-
-        setCourses(courseList);
-      } catch (error) {
-        setServerError(error.message);
+      const courseSnapshot = await getDoc(courseDoc);
+      if (courseSnapshot.exists()) {
+        setCourse({ id: courseSnapshot.id, ...courseSnapshot.data() });
+      } else {
+        console.log("No such document!");
       }
     };
+
+    fetchCourse();
+  }, [id]);
 
   const onDismissSnackBarHandler = () => setServerError("");
 
@@ -58,12 +56,12 @@ export default function Course({ route }) {
           name="Description"
           children={(props) => (
             <Description
-              title={course?.title}
-              instructor={course?.instructor_name}
+              title={course?.courseName}
+              instructor={course?.userEmail}
               image={imgPath}
-              desc={course?.description}
-              objectives={course?.objectives}
-              topics={course?.topics}
+              desc={course?.courseDescription}
+              objectives={course?.courseObjectives}
+              topics={course?.courseTopics}
               {...props}
             />
           )}
@@ -71,7 +69,7 @@ export default function Course({ route }) {
         <Tab.Screen
           name="Materials"
           children={(props) => (
-            <LearningMaterials materials={course?.materials} {...props} />
+            <LearningMaterials materials={course?.learningMaterials} {...props} />
           )}
         />
         <Tab.Screen
@@ -82,7 +80,7 @@ export default function Course({ route }) {
         />
         <Tab.Screen
           name="Forum"
-          children={(props) => <Forum forums={course?.forums} {...props} />}
+          children={(props) => <Forum forums={course?.comments} {...props} />}
         />
       </Tab.Navigator>
 

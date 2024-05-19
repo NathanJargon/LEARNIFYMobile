@@ -23,12 +23,15 @@ export default function CourseCard({ course }) {
   );
 
   const Progress = () => {
-    const progressDecimal = course.progress.replace("%", "") * 0.01;
+    let progressDecimal = 0;
+    if (course.progress) {
+      progressDecimal = course.progress.replace("%", "") * 0.01;
+    }
 
     return (
       <View style={{ gap: 4 }}>
         <ProgressBar progress={progressDecimal} />
-        <Text style={styles.completeLabel}>{course.progress}% Complete</Text>
+        <Text style={styles.completeLabel}>{course.progress ? course.progress : '0'}% Complete</Text>
       </View>
     );
   };
@@ -63,7 +66,7 @@ export default function CourseCard({ course }) {
               style={styles.button}
               onPress={() =>
                 navigation.navigate("Course", {
-                  id: course.course_id,
+                  id: course.id,
                   imgPath: course.image_path,
                 })
               }

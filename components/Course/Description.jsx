@@ -9,18 +9,6 @@ export default function Description({
   objectives,
   topics,
 }) {
-  const courseObjectives = objectives?.map((objective, index) => (
-    <Text key={index} style={styles.paragraph}>
-      {index + 1} {objective}
-    </Text>
-  ));
-
-  const courseTopics = topics?.map((topic, index) => (
-    <Text key={index} style={styles.paragraph}>
-      {index + 1} {topic}
-    </Text>
-  ));
-
   return (
     <ScrollView>
       <View style={styles.coverContainer}>
@@ -47,14 +35,14 @@ export default function Description({
           <Text variant="titleMedium" style={styles.title}>
             Course Objective:
           </Text>
-          {courseObjectives}
+          <Text style={styles.paragraph}>{objectives}</Text>
         </View>
 
         <View style={styles.section}>
           <Text variant="titleMedium" style={styles.title}>
             Course Topic:
           </Text>
-          {courseTopics}
+          <Text style={styles.paragraph}>{topics}</Text>
         </View>
       </View>
     </ScrollView>

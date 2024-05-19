@@ -12,13 +12,13 @@ import { Ionicons } from "@expo/vector-icons";
 
 export default function Forum({ forums }) {
   const renderItems = ({ item, index }) => {
-    if (item.length <= 0) {
+    if (!item || !item.text) {
       return;
     }
-    if (item.includes("Reply")) {
-      return <PostComment key={index} message={item} />;
+    if (item.text.includes("Reply")) {
+      return <PostComment key={index} message={item.text} />;
     } else {
-      return <ReplyComment key={index} message={item} />;
+      return <ReplyComment key={index} message={item.text} />;
     }
   };
 

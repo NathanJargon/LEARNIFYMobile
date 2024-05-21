@@ -86,47 +86,29 @@ export default function Login({ navigation }) {
     try {
       setIsLoading(true);
 
-      const db = firebase.firestore();
+      firebase.auth().signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
 
-      // Use email as the document ID
-      const docRef = db.collection("users").doc(email);
+          if (!user) {
+            setServerError("Login failed");
+            return;
+          }
 
-      docRef.get().then((docSnap) => {
-        if (!docSnap.exists) {
-          setServerError("Login failed");
-          return;
-        }
+          signIn(user.uid);
+          setSecureStore("userToken", user.uid);
 
-        if (docSnap.data().password !== password) {
-          alert("Wrong password");
-          return;
-        }
-
-        // Check if the user is an instructor
-        if (docSnap.data().instructor) {
-          alert("Instructors cannot log in here");
-          return;
-        }
-
-        firebase.auth().signInWithEmailAndPassword(email, password)
-          .then((userCredential) => {
-            const user = userCredential.user;
-
-            if (!user) {
-              setServerError("Login failed");
-              return;
-            }
-
-            signIn(user.uid);
-            setSecureStore("userToken", user.uid);
-
-            AsyncStorage.setItem('email', email);
-            AsyncStorage.setItem('password', password);
-          })
-          .catch((error) => {
-            setServerError(error.message);
+          AsyncStorage.setItem('email', email).then(() => {
+            console.log('Email saved to AsyncStorage');
           });
-      });
+
+          AsyncStorage.setItem('password', password).then(() => {
+            console.log('Password saved to AsyncStorage');
+          });
+        })
+        .catch((error) => {
+          setServerError(error.message);
+        });
     } catch (error) {
       setServerError(error.message);
     } finally {
@@ -134,17 +116,19 @@ export default function Login({ navigation }) {
     }
   }
 
-    useEffect(() => {
-      AsyncStorage.getItem('email').then(storedEmail => {
-        AsyncStorage.getItem('password').then(storedPassword => {
-          if (storedEmail && storedPassword) {
-            setEmail(storedEmail);
-            setPassword(storedPassword);
-            login();
-          }
-        });
+  useEffect(() => {
+    AsyncStorage.getItem('email').then(storedEmail => {
+      AsyncStorage.getItem('password').then(storedPassword => {
+        if (storedEmail && storedPassword) {
+          console.log(`Email: ${storedEmail}`);
+          console.log(`Password: ${storedPassword}`);
+          setEmail(storedEmail);
+          setPassword(storedPassword);
+          login();
+        }
       });
-    }, []);
+    });
+  }, []);
 
   return (
     <View style={formStyles.container}>

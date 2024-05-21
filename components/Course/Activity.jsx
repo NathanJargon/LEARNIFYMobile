@@ -9,8 +9,8 @@ export default function Activity({ activities }) {
     <Text style={{ color: theme.colors.secondary }}>No Activity</Text>
   ) : (
     activities.map((activity) => {
-      const title = activity[0];
-      const id = activity[1];
+      const title = activity.activityName || "Activity";  // Changed this line
+      const id = activity.userId;  // Changed this line
 
       return <ActivityCard key={id} title={title} id={id} />;
     })

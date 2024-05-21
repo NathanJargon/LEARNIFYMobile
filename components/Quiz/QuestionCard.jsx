@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { RadioButton, Text } from "react-native-paper";
 
@@ -10,22 +10,21 @@ export default function QuestionCard({ questionNumber, question, choices }) {
       onValueChange={(newAnswer) => setAnswer(newAnswer)}
       value={answer}
     >
-      {choices?.map((option) => {
-
-        return (
-          <>
-            <RadioButton.Item
-              key={option.id}
-              style={styles.answerOption}
-              label={option.choice}
-              value={option.choice}
-            />
-            <View style={{ height: 14 }} />
-          </>
-        );
-      })}
+    {choices?.map((option, index) => {
+      return (
+        <React.Fragment key={index}>
+          <RadioButton.Item
+            style={styles.answerOption}
+            label={option} // use option directly instead of option.choice
+            value={option} // use option directly instead of option.choice
+          />
+          <View style={{ height: 14 }} />
+        </React.Fragment>
+      );
+    })}
     </RadioButton.Group>
   );
+
 
   return (
     <View style={styles.container}>

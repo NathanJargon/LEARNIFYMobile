@@ -11,7 +11,8 @@ import Forum from "../components/Course/Forum";
 import baseURL from "../utils/baseURL";
 import { getSecureStore } from "../utils/SecureStore";
 import { firebase } from "../utils/FirebaseConfig";
-import { getFirestore, doc, collection, getDocs, getDoc } from "firebase/firestore";
+import { getFirestore, doc, collection, getDocs, getDoc, query, where } from "firebase/firestore";
+
 
 export default function Course({ route }) {
   const userToken = getSecureStore("userToken");
@@ -25,17 +26,34 @@ export default function Course({ route }) {
     const fetchCourse = async () => {
       const db = getFirestore();
       const courseDoc = doc(db, "courses", id);
-
+  
       const courseSnapshot = await getDoc(courseDoc);
       if (courseSnapshot.exists()) {
         setCourse({ id: courseSnapshot.id, ...courseSnapshot.data() });
+  
+        // Fetch related activities
+        try {
+          const activitiesCollection = collection(db, 'activities');
+          const activitiesQuery = query(activitiesCollection, where('courseId', '==', id));
+          const activitiesSnapshot = await getDocs(activitiesQuery);
+          console.log('activitiesSnapshot:', activitiesSnapshot);  // Log the activitiesSnapshot
+  
+          const activities = activitiesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  
+          // Add activities to course state
+          setCourse(course => ({ ...course, activities }));
+        } catch (error) {
+          console.log('Error fetching activities:', error);  // Log any errors
+        }
       } else {
         console.log("No such document!");
       }
     };
-
+  
     fetchCourse();
   }, [id]);
+
+  console.log(course);
 
   const onDismissSnackBarHandler = () => setServerError("");
 

@@ -21,7 +21,7 @@ export default function Home() {
   console.log(userToken)
   useEffect(() => {
     const filteredCourses = originalCourseData.filter((course) =>
-      course.title.includes(searchQuery.toLowerCase())
+      course.courseName.toLowerCase().includes(searchQuery.toLowerCase())
     );
     setCourses(filteredCourses);
   }, [searchQuery]);
@@ -84,7 +84,7 @@ export default function Home() {
         onRefresh={getCourses}
         refreshing={refreshing}
         renderItem={({ item }) => <CourseCard course={item} />}
-        keyExtractor={(item) => item.course_id}
+        keyExtractor={(item) => item.id}
         ListHeaderComponent={TopContent}
         ListEmptyComponent={
           <Text style={{ color: theme.colors.secondary }}>

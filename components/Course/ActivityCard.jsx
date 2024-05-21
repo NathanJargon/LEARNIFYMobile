@@ -4,6 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 
 export default function ActivityCard({title, id}) {
   const navigation = useNavigation();
+  console.log("ActivityCard:", id);
 
   return (
     <Card

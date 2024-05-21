@@ -18,7 +18,7 @@ export default function CourseCard({ course }) {
       variant="titleMedium"
       style={{ fontWeight: "bold", textTransform: "uppercase" }}
     >
-      {course.title}
+      {course.courseName}
     </Text>
   );
 
@@ -40,7 +40,7 @@ export default function CourseCard({ course }) {
     <Card style={[styles.card, { backgroundColor: theme.colors.background }]}>
       <Card.Title
         style={styles.header}
-        title={course.instructor_name}
+        title={course.userEmail}
         titleStyle={[styles.instructorName, { color: theme.colors.secondary }]}
         left={InstructorAvatar}
         right={CourseName}

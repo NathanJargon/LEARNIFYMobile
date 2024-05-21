@@ -5,7 +5,7 @@ import LearningMaterialCard from "./LearningMaterialCard";
 
 export default function LearningMaterials({ materials }) {
 
-
+  console.log(materials);
   const LearningMaterials = materials?.map((item, index) => {
     return (
       <LearningMaterialCard

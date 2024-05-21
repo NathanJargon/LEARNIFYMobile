@@ -1,9 +1,53 @@
 import { Text, Card, Button, Avatar, ProgressBar } from "react-native-paper";
 import { StyleSheet, View, Image } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { firebase } from "../utils/FirebaseConfig";
+import { getFirestore, collection, getDocs } from "firebase/firestore";
+import { useEffect, useState } from "react";
 
-export default function CourseCard({ course }) {
+export default function CourseCard({ course, userEmail }) {
   const navigation = useNavigation();
+  const [progress, setProgress] = useState({});
+
+useEffect(() => {
+  const calculateProgress = async () => {
+    const db = getFirestore();
+    const activitiesCollection = collection(db, "activities");
+    const activityResultCollection = collection(db, "ActivityResult");
+
+    const activitySnapshot = await getDocs(activitiesCollection);
+    const activityResultSnapshot = await getDocs(activityResultCollection);
+
+    console.log(activitySnapshot.docs.map(doc => doc.data()));
+    console.log(activityResultSnapshot.docs.map(doc => doc.data())); 
+
+    const totalActivities = activitySnapshot.docs.reduce((count, doc) => {
+      const data = doc.data();
+      const courseId = data.courseId;
+      count[courseId] = (count[courseId] || 0) + 1;
+      return count;
+    }, {});
+
+    const completedActivities = activitySnapshot.docs.reduce((count, doc) => {
+      const data = doc.data();
+      if (data.ActivityResult && data.ActivityResult.length > 0) {
+        const courseId = data.courseId;
+        count[courseId] = (count[courseId] || 0) + 1;
+      }
+      return count;
+    }, {});
+
+
+    const progress = {};
+    for (const courseId in totalActivities) {
+      progress[courseId] = completedActivities[courseId] / totalActivities[courseId];
+    }
+
+    setProgress(progress);
+  };
+
+  calculateProgress();
+}, [course, userEmail]);
 
   const InstructorAvatar = (props) => (
     <Avatar.Image
@@ -23,15 +67,12 @@ export default function CourseCard({ course }) {
   );
 
   const Progress = () => {
-    let progressDecimal = 0;
-    if (course.progress) {
-      progressDecimal = course.progress.replace("%", "") * 0.01;
-    }
-
+    let progressDecimal = progress[course.id] || 0;
+  
     return (
       <View style={{ gap: 4 }}>
         <ProgressBar progress={progressDecimal} />
-        <Text style={styles.completeLabel}>{course.progress ? course.progress : '0'}% Complete</Text>
+        <Text style={styles.completeLabel}>{Math.round(progressDecimal * 100)}% Complete</Text>
       </View>
     );
   };

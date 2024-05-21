@@ -1,26 +1,26 @@
 import { StyleSheet, View, Text } from "react-native";
 
-export function ReplyComment({message}) {
+export function ReplyComment({message, date}) {
   return (
     <View style={[styles.container, styles.userComment]}>
       <View style={[styles.comment]}>
         <Text style={styles.commentator}>Anonymous</Text>
         <Text style={styles.content}>{message}</Text>
+        <Text style={styles.timeStamp}>{date}</Text>
       </View>
-      {/* <Text style={styles.timeStampt}>02:58 PM</Text> */}
     </View>
   );
 }
 
-export function PostComment({message}) {
+export function PostComment({message, date}) {
   return (
     <View style={[styles.container, styles.otherComment]}>
-    <View style={[styles.comment]}>
-      <Text style={styles.commentator}>Anonymous</Text>
-      <Text style={styles.content}>{message}</Text>
+      <View style={[styles.comment]}>
+        <Text style={styles.commentator}>Anonymous</Text>
+        <Text style={styles.content}>{message}</Text>
+        <Text style={styles.timeStamp}>{date}</Text>
+      </View>
     </View>
-    {/* <Text style={styles.timeStampt}>02:58 PM</Text> */}
-  </View>
   );
 }
 
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
   content: {
     lineHeight: 20,
   },
-  timeStampt: {
+  timeStamp: {
     marginStart: 14,
     fontSize: 10,
   },

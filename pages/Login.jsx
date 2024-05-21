@@ -14,6 +14,7 @@ import {
 import { firebase } from "../utils/FirebaseConfig";
 import { getFirestore } from "firebase/firestore";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getSecureStore, setSecureStore, removeSecureStore } from "../utils/SecureStore";
 
 export default function Login({ navigation }) {
   const theme = useTheme();

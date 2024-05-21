@@ -2,6 +2,7 @@ import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
 import 'firebase/compat/storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
   apiKey: "AIzaSyA9FLfGFkFw8BGPJV57bfk6HHndhMe23f4",
@@ -17,5 +18,7 @@ if (!firebase.apps.length){
     firebase.initializeApp(firebaseConfig);
 }
 
+const auth = firebase.auth();
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
 export { firebase };

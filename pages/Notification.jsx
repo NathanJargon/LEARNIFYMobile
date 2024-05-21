@@ -3,6 +3,8 @@ import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { useTheme } from 'react-native-paper';
 import { firebase } from "../utils/FirebaseConfig";
+import { getFirestore, collection, getDocs, getDoc, doc } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 export default function Notification({ navigation }) {
   const route = useRoute();
@@ -11,13 +13,20 @@ export default function Notification({ navigation }) {
 
   useEffect(() => {
     const fetchNotifications = async () => {
-      const user = firebase.auth().currentUser;
-      console.log(user);
-          console.log(user.email)
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      console.log('Current user:', user); // Log the current user
+
       if (user) {
-        const doc = await firebase.firestore().collection('users').doc(user.email).get();
-        if (doc.exists) {
-          setNotifications(doc.data().notifications);
+        const db = getFirestore();
+        const userDoc = await getDoc(doc(db, "users", user.email));
+
+        console.log('User document:', userDoc.data()); // Log the user document
+
+        if (userDoc.exists()) {
+          console.log('Notifications in user document:', userDoc.data().notifications); // Log the notifications in the user document
+          setNotifications(userDoc.data().notifications);
         }
       }
     };

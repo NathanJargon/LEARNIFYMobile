@@ -8,7 +8,7 @@ import baseURL from "../utils/baseURL";
 import { getSecureStore } from "../utils/SecureStore";
 import { firebase } from "../utils/FirebaseConfig";
 import { getFirestore, collection, getDocs } from "firebase/firestore";
-
+import { getAuth } from "firebase/auth";
 
 export default function Home() {
   const userToken = getSecureStore("userToken");
@@ -17,30 +17,34 @@ export default function Home() {
   const [serverError, setServerError] = useState("");
   const [originalCourseData, setOriginalCourseData] = useState([]);
   const [courses, setCourses] = useState(originalCourseData);
-  
+  const [userEmail, setUserEmail] = useState(null); // Add this line
+
   console.log(userToken)
   useEffect(() => {
     const filteredCourses = originalCourseData.filter((course) =>
       course.courseName.toLowerCase().includes(searchQuery.toLowerCase())
     );
     setCourses(filteredCourses);
-  }, [searchQuery]);
+  }, [searchQuery, originalCourseData]);
 
   useEffect(() => {
     getCourses();
   }, []);
 
   const getCourses = async () => {
+    const auth = getAuth();
+    const userEmail = auth.currentUser?.email;
+    setUserEmail(userEmail); 
     setRefreshing(true);
     try {
       const db = getFirestore();
       const coursesCollection = collection(db, "courses");
-
+  
       const courseSnapshot = await getDocs(coursesCollection);
       const courseList = courseSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
+  
       console.log(courseList); // Log the fetched data
-
+  
       setOriginalCourseData(courseList);
       setCourses(courseList);
     } catch (error) {
@@ -83,7 +87,7 @@ export default function Home() {
         data={courses}
         onRefresh={getCourses}
         refreshing={refreshing}
-        renderItem={({ item }) => <CourseCard course={item} />}
+        renderItem={({ item }) => <CourseCard course={item} userEmail={userEmail} />}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={TopContent}
         ListEmptyComponent={

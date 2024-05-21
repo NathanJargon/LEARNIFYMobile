@@ -98,7 +98,7 @@ export default function Course({ route }) {
         />
         <Tab.Screen
           name="Forum"
-          children={(props) => <Forum forums={course?.comments} {...props} />}
+          children={(props) => <Forum forums={course?.comments} courseId={id} {...props} />}
         />
       </Tab.Navigator>
 

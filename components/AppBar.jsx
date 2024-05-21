@@ -18,7 +18,6 @@ export default function AppBar({
   const logoSizeStyle = logoSize ?? 50;
   const titleSizeStyle = titleSize ?? 22;
   const hasLogoStyle = hasLogo ?? true;
-
   return (
     <Appbar.Header
       style={[customStyle, { backgroundColor: theme.colors.background }]}

@@ -18,8 +18,8 @@ useEffect(() => {
     const activitySnapshot = await getDocs(activitiesCollection);
     const activityResultSnapshot = await getDocs(activityResultCollection);
 
-    console.log(activitySnapshot.docs.map(doc => doc.data()));
-    console.log(activityResultSnapshot.docs.map(doc => doc.data())); 
+    // console.log(activitySnapshot.docs.map(doc => doc.data()));
+    // console.log(activityResultSnapshot.docs.map(doc => doc.data())); 
 
     const totalActivities = activitySnapshot.docs.reduce((count, doc) => {
       const data = doc.data();

@@ -19,7 +19,6 @@ export default function Home() {
   const [courses, setCourses] = useState(originalCourseData);
   const [userEmail, setUserEmail] = useState(null); // Add this line
 
-  console.log(userToken)
   useEffect(() => {
     const filteredCourses = originalCourseData.filter((course) =>
       course.courseName.toLowerCase().includes(searchQuery.toLowerCase())

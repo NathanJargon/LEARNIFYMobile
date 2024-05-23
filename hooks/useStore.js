@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { setSecureStore, removeSecureStore } from "../utils/SecureStore";
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const useStore = create((set) => ({
   userIsAuthenticated: false,
@@ -9,8 +8,6 @@ const useStore = create((set) => ({
     set({ userIsAuthenticated: true });
   },
   signOut: async () => {
-    await AsyncStorage.removeItem('email');
-    await AsyncStorage.removeItem('password');
     removeSecureStore("userToken");
     set({ userIsAuthenticated: false });
   },

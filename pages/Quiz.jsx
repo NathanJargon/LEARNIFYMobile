@@ -7,7 +7,6 @@ import { getSecureStore } from "../utils/SecureStore";
 import baseURL from "../utils/baseURL";
 import { getFirestore, doc, getDoc, updateDoc } from "firebase/firestore";
 import { firebase } from "../utils/FirebaseConfig";
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Quiz({ route, navigation }) {
   const id = route.params.id;
@@ -25,20 +24,6 @@ export default function Quiz({ route, navigation }) {
     const token = getSecureStore("userToken");
     setUserToken(token);
     console.log("User Token: " + token);
-  }, []);
-
-    useEffect(() => {
-    const fetchStorageData = async () => {
-      const keys = await AsyncStorage.getAllKeys();
-      const result = await AsyncStorage.multiGet(keys);
-
-      console.log('Current AsyncStorage:');
-      result.forEach(([key, value]) => {
-        console.log(`${key}: ${value}`);
-      });
-    };
-
-    fetchStorageData();
   }, []);
 
   const submitQuiz = async () => {

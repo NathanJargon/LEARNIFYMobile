@@ -12,7 +12,7 @@ import baseURL from "../utils/baseURL";
 import { getSecureStore } from "../utils/SecureStore";
 import { firebase } from "../utils/FirebaseConfig";
 import { getFirestore, doc, collection, getDocs, getDoc, query, where } from "firebase/firestore";
-
+import { getAuth } from "firebase/auth";
 
 export default function Course({ route }) {
   const userToken = getSecureStore("userToken");
@@ -21,12 +21,23 @@ export default function Course({ route }) {
   const id = route.params.id;
   const imgPath = route.params.imgPath;
   const [course, setCourse] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [userEmail, setUserEmail] = useState(null);
 
+  console.log(userToken)
   useEffect(() => {
     const fetchCourse = async () => {
       const db = getFirestore();
       const courseDoc = doc(db, "courses", id);
   
+      const auth = getAuth();
+      const userEmail = auth.currentUser?.email;
+      setUserEmail(userEmail); 
+      setRefreshing(true);
+
+      console.log("User email :" + userEmail);
+
+      
       const courseSnapshot = await getDoc(courseDoc);
       if (courseSnapshot.exists()) {
         setCourse({ id: courseSnapshot.id, ...courseSnapshot.data() });

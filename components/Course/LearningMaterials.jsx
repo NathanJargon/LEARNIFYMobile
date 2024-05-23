@@ -1,19 +1,31 @@
-import { StyleSheet, ScrollView, View, Image } from "react-native";
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, ScrollView, View, Image, TouchableOpacity } from "react-native";
 import { Text } from "react-native-paper";
 
 import LearningMaterialCard from "./LearningMaterialCard";
 
 export default function LearningMaterials({ materials }) {
+  const [materialUrls, setMaterialUrls] = useState([]);
 
-  console.log(materials);
-  const LearningMaterials = materials?.map((item, index) => {
+  console.log("Materials: " + materials);
+  console.log("Type of materials: " + typeof materials);
+
+  useEffect(() => {
+    if (materials && Array.isArray(materials)) {
+      setMaterialUrls(materials);
+    }
+  }, [materials]);
+
+  const LearningMaterials = materialUrls.map((item, index) => {
     return (
       <LearningMaterialCard
         key={index}
-        title={item}
+        title={`Learning Material ${index + 1}`}
+        pdfUrl={item} // Pass the URL as the pdfUrl prop
       />
     );
   });
+
 
   return (
     <ScrollView style={styles.container}>

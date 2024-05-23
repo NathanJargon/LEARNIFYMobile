@@ -2,9 +2,7 @@ import { useState } from "react";
 import { StackActions } from "@react-navigation/native";
 import { View, ScrollView, KeyboardAvoidingView } from "react-native";
 import { Button, Text, useTheme, Snackbar } from "react-native-paper";
-
 import { formStyles } from "../utils/globalStyles";
-import useStore from "../hooks/useStore";
 import AppBar from "../components/AppBar";
 import baseURL from "../utils/baseURL";
 import {
@@ -13,11 +11,10 @@ import {
   SubmitButton,
 } from "../components/FormField";
 import { firebase } from "../utils/FirebaseConfig";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Signup({ navigation }) {
   const theme = useTheme();
-
-  const signIn = useStore((state) => state.signIn);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -127,44 +124,56 @@ export default function Signup({ navigation }) {
     if (isFormValid()) signup();
   };
 
-    async function signup() {
-      try {
-        setIsLoading(true);
-
-        if (!isFormValid()) {
-          return;
-        }
-
-        const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
-        const user = userCredential.user;
-
-        if (!user) {
-          setServerError("Signup failed");
-          return;
-        }
-
-        const db = firebase.firestore();
-
-        await db.collection("users").doc(email).set({
-          email: email,
-          uid: user.uid,
-          password: password,
-          notification: [
-            {
-              imageUri: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnfAxGV-fZxGL9elM_hQ2tp7skLeSwMyUiwo4lMm1zyA&s",
-              text: "Welcome to Learnify!"
-            }
-          ],
-        });
-
-        signIn(user.uid);
-        setSecureStore("userToken", user.uid);
-      } catch (error) {
-        setServerError(error.message);
-      } finally {
-        setIsLoading(false);
+  async function signup() {
+    try {
+      setIsLoading(true);
+  
+      if (!isFormValid()) {
+        return;
       }
+  
+      const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+      const user = userCredential.user;
+  
+      if (!user) {
+        setServerError("Signup failed");
+        return;
+      }
+  
+      const db = firebase.firestore();
+  
+      await db.collection("users").doc(email).set({
+        email: email,
+        uid: user.uid,
+        password: password,
+        notification: [
+          {
+            imageUri: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnfAxGV-fZxGL9elM_hQ2tp7skLeSwMyUiwo4lMm1zyA&s",
+            text: "Welcome to Learnify!"
+          }
+        ],
+      });
+  
+      await AsyncStorage.setItem('userToken', user.uid).then(() => {
+        console.log('User token saved to AsyncStorage');
+      });
+  
+      await AsyncStorage.setItem('email', email).then(() => {
+        console.log('Email saved to AsyncStorage');
+      });
+  
+      await AsyncStorage.setItem('password', password).then(() => {
+        console.log('Password saved to AsyncStorage');
+      });
+
+      navigation.navigate("Main");
+      
+    } catch (error) {
+      setServerError(error.message);
+    } finally {
+      setIsLoading(false);
     }
+  }
 
   return (
     <ScrollView

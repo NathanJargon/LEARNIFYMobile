@@ -1,23 +1,29 @@
 import { useEffect, useState } from "react";
 import { StyleSheet, View, FlatList } from "react-native";
 import { Text, Searchbar, Snackbar } from "react-native-paper";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import CourseCard from "../components/CourseCard";
 import AppBar from "../components/AppBar";
 import baseURL from "../utils/baseURL";
-import { getSecureStore } from "../utils/SecureStore";
 import { firebase } from "../utils/FirebaseConfig";
 import { getFirestore, collection, getDocs } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 export default function Home() {
-  const userToken = getSecureStore("userToken");
+  const [userToken, setUserToken] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [serverError, setServerError] = useState("");
   const [originalCourseData, setOriginalCourseData] = useState([]);
   const [courses, setCourses] = useState(originalCourseData);
-  const [userEmail, setUserEmail] = useState(null); // Add this line
+  const [userEmail, setUserEmail] = useState(null);
+
+  useEffect(() => {
+    AsyncStorage.getItem('userToken').then(token => {
+      setUserToken(token);
+    });
+  }, []);
 
   useEffect(() => {
     const filteredCourses = originalCourseData.filter((course) =>
@@ -31,9 +37,10 @@ export default function Home() {
   }, []);
 
   const getCourses = async () => {
-    const auth = getAuth();
-    const userEmail = auth.currentUser?.email;
-    setUserEmail(userEmail); 
+    const email = await AsyncStorage.getItem('email');
+    setUserEmail(email);
+    console.log("User Email: " + email);
+
     setRefreshing(true);
     try {
       const db = getFirestore();
@@ -41,8 +48,7 @@ export default function Home() {
   
       const courseSnapshot = await getDocs(coursesCollection);
       const courseList = courseSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  
-      console.log(courseList); // Log the fetched data
+
   
       setOriginalCourseData(courseList);
       setCourses(courseList);

@@ -9,45 +9,51 @@ export default function CourseCard({ course, userEmail }) {
   const navigation = useNavigation();
   const [progress, setProgress] = useState({});
 
-useEffect(() => {
-  const calculateProgress = async () => {
-    const db = getFirestore();
-    const activitiesCollection = collection(db, "activities");
-    const activityResultCollection = collection(db, "ActivityResult");
+  useEffect(() => {
+    const calculateProgress = async () => {
+      const db = getFirestore();
+      const activitiesCollection = collection(db, "activities");
 
-    const activitySnapshot = await getDocs(activitiesCollection);
-    const activityResultSnapshot = await getDocs(activityResultCollection);
+      const activitySnapshot = await getDocs(activitiesCollection);
 
-    // console.log(activitySnapshot.docs.map(doc => doc.data()));
-    // console.log(activityResultSnapshot.docs.map(doc => doc.data())); 
+      const totalActivities = activitySnapshot.docs.reduce((count, doc) => {
+        const data = doc.data();
+        if (data.courseId === course.id) {
+          count[data.courseId] = (count[data.courseId] || 0) + 1;
+        }
+        return count;
+      }, {});
 
-    const totalActivities = activitySnapshot.docs.reduce((count, doc) => {
-      const data = doc.data();
-      const courseId = data.courseId;
-      count[courseId] = (count[courseId] || 0) + 1;
-      return count;
-    }, {});
+      console.log('Total activities:', totalActivities);
 
-    const completedActivities = activitySnapshot.docs.reduce((count, doc) => {
-      const data = doc.data();
-      if (data.ActivityResult && data.ActivityResult.length > 0) {
-        const courseId = data.courseId;
-        count[courseId] = (count[courseId] || 0) + 1;
+      const completedActivities = activitySnapshot.docs.reduce((count, doc) => {
+        const data = doc.data();
+        if (data.courseId === course.id && data.ActivityResult) {
+          console.log('ActivityResult:', data.ActivityResult);
+          const userResult = data.ActivityResult.find(result => result.userEmail === userEmail);
+          console.log('userEmail:', userEmail);
+          console.log('userResult:', userResult);
+          if (userResult && userResult.score >= 0) {
+            count[data.courseId] = (count[data.courseId] || 0) + 1;
+          }
+        }
+        return count;
+      }, {});
+
+      console.log('Completed activities:', completedActivities);
+
+      const progress = {};
+      for (const courseId in totalActivities) {
+        progress[courseId] = completedActivities[courseId] / totalActivities[courseId];
       }
-      return count;
-    }, {});
 
+      console.log('Progress:', progress);
 
-    const progress = {};
-    for (const courseId in totalActivities) {
-      progress[courseId] = completedActivities[courseId] / totalActivities[courseId];
-    }
+      setProgress(progress);
+    };
 
-    setProgress(progress);
-  };
-
-  calculateProgress();
-}, [course, userEmail]);
+    calculateProgress();
+  }, [course, userEmail]);
 
   const InstructorAvatar = (props) => (
     <Avatar.Image

@@ -1,10 +1,10 @@
 import { StyleSheet, View, Text } from "react-native";
 
-export function ReplyComment({message, date}) {
+export function ReplyComment({message, date, user}) {
   return (
     <View style={[styles.container, styles.userComment]}>
       <View style={[styles.comment]}>
-        <Text style={styles.commentator}>Anonymous</Text>
+        <Text style={styles.commentator}>{user}</Text>
         <Text style={styles.content}>{message}</Text>
         <Text style={styles.timeStamp}>{date}</Text>
       </View>
@@ -12,11 +12,11 @@ export function ReplyComment({message, date}) {
   );
 }
 
-export function PostComment({message, date}) {
+export function PostComment({message, date, user}) { 
   return (
     <View style={[styles.container, styles.otherComment]}>
       <View style={[styles.comment]}>
-        <Text style={styles.commentator}>Anonymous</Text>
+        <Text style={styles.commentator}>{user}</Text> 
         <Text style={styles.content}>{message}</Text>
         <Text style={styles.timeStamp}>{date}</Text>
       </View>

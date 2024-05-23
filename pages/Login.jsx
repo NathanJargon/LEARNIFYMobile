@@ -3,7 +3,6 @@ import { StackActions } from "@react-navigation/native";
 import { View } from "react-native";
 import { Button, Text, useTheme, Snackbar } from "react-native-paper";
 import { formStyles } from "../utils/globalStyles";
-import useStore from "../hooks/useStore";
 import AppBar from "../components/AppBar";
 import baseURL from "../utils/baseURL";
 import {
@@ -12,14 +11,11 @@ import {
   SubmitButton,
 } from "../components/FormField";
 import { firebase } from "../utils/FirebaseConfig";
-import { getFirestore } from "firebase/firestore";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getSecureStore, setSecureStore, removeSecureStore } from "../utils/SecureStore";
+import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
 
 export default function Login({ navigation }) {
   const theme = useTheme();
-
-  const signIn = useStore((state) => state.signIn);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [hidePassword, setHidePassword] = useState(true);
@@ -30,6 +26,21 @@ export default function Login({ navigation }) {
     email: "",
     password: "",
   });
+
+
+  useEffect(() => {
+    const testAsyncStorage = async () => {
+      try {
+        await AsyncStorage.setItem('testKey', 'testValue');
+        const value = await AsyncStorage.getItem('testKey');
+        console.log(value); // Should log 'testValue'
+      } catch (e) {
+        console.log(e); // Logs any errors
+      }
+    };
+  
+    testAsyncStorage();
+  }, []);
 
   /* Handlers */
   const onDismissSnackBarHandler = () => setServerError("");
@@ -60,9 +71,9 @@ export default function Login({ navigation }) {
     }
 
     //check if password is more than 8 characters
-    if (password.length < 8) {
+    if (password.length < 6) {
       setFormError((prevFormError) => {
-        return { ...prevFormError, password: "Minimum of 8 characters" };
+        return { ...prevFormError, password: "Minimum of 6 characters" };
       });
       errorCount++;
     }
@@ -83,52 +94,63 @@ export default function Login({ navigation }) {
     if (isFormValid()) login();
   };
 
-  
   async function login() {
     try {
       setIsLoading(true);
+  
+      // Get Firestore instance
+      const db = getFirestore();
+  
+      // Create a query against the collection.
+      const q = query(collection(db, "users"), where("email", "==", email));
+  
+      const querySnapshot = await getDocs(q);
+      let userExists = false;
+  
+      querySnapshot.forEach((doc) => {
+        // doc.data() is never undefined for query doc snapshots
+        console.log(doc.id, " => ", doc.data());
+        if (doc.data().password === password) {
+          userExists = true;
+          // Save user data to AsyncStorage
+          AsyncStorage.setItem('userToken', doc.id);
+          console.log('User token saved to AsyncStorage');
+    
+          AsyncStorage.setItem('email', email);
+          console.log('Email saved to AsyncStorage');
+    
+          AsyncStorage.setItem('password', password);
+          console.log('Password saved to AsyncStorage');
 
-      firebase.auth().signInWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          const user = userCredential.user;
-
-          if (!user) {
-            setServerError("Login failed");
-            return;
-          }
-
-          signIn(user.uid);
-          setSecureStore("userToken", user.uid);
-
-          AsyncStorage.setItem('email', email).then(() => {
-            console.log('Email saved to AsyncStorage');
-          });
-
-          AsyncStorage.setItem('password', password).then(() => {
-            console.log('Password saved to AsyncStorage');
-          });
-        })
-        .catch((error) => {
-          setServerError(error.message);
-        });
+          navigation.navigate("Main");
+        }
+      });
+  
+      if (!userExists) {
+        throw new Error("Invalid email or password");
+      }
     } catch (error) {
       setServerError(error.message);
     } finally {
       setIsLoading(false);
     }
   }
-
+  
   useEffect(() => {
-    AsyncStorage.getItem('email').then(storedEmail => {
-      AsyncStorage.getItem('password').then(storedPassword => {
-        if (storedEmail && storedPassword) {
-          console.log(`Email: ${storedEmail}`);
-          console.log(`Password: ${storedPassword}`);
-          setEmail(storedEmail);
-          setPassword(storedPassword);
-          login();
-        }
-      });
+    AsyncStorage.getItem('userToken').then(userToken => {
+      if (userToken) {
+        AsyncStorage.getItem('email').then(storedEmail => {
+          AsyncStorage.getItem('password').then(storedPassword => {
+            if (storedEmail && storedPassword) {
+              console.log(`Email: ${storedEmail}`);
+              console.log(`Password: ${storedPassword}`);
+              setEmail(storedEmail);
+              setPassword(storedPassword);
+              navigation.navigate("Main");
+            }
+          });
+        });
+      }
     });
   }, []);
 

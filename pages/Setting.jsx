@@ -2,17 +2,23 @@ import { View, StyleSheet, ScrollView } from "react-native";
 import { useTheme, List } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { getSecureStore } from "../utils/SecureStore";
-import useStore from "../hooks/useStore";
 import AppBar from "../components/AppBar";
+import { firebase } from "../utils/FirebaseConfig";
 
 export default function Setting() {
-  const signOut = useStore((state) => state.signOut);
-  const userToken = getSecureStore("userToken");
   const theme = useTheme();
   const navigation = useNavigation();
-  console.log(userToken);
+
+  async function logout() {
+    try {
+      await AsyncStorage.clear();
+      navigation.navigate("Login");
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
   return (
     <View
@@ -21,30 +27,6 @@ export default function Setting() {
       <AppBar hasProfileAvatar={true} title="Learnify" />
 
       <ScrollView style={styles.content}>
-        {/* <List.Item
-          title="Personal Info"
-          style={styles.list}
-          right={() => (
-            <MaterialCommunityIcons
-              name="chevron-right"
-              size={24}
-              color="black"
-            />
-          )}
-          onPress={() => navigation.push("PersonalInfo")}
-        />
-        <List.Item
-          title="Security"
-          style={styles.list}
-          right={() => (
-            <MaterialCommunityIcons
-              name="chevron-right"
-              size={24}
-              color="black"
-            />
-          )}
-          onPress={() => navigation.push("Security")}
-        /> */}
         <List.Item
           rippleColor="pink"
           title="Logout"
@@ -56,7 +38,7 @@ export default function Setting() {
               color="firebrick"
             />
           )}
-          onPress={signOut}
+          onPress={logout}
         />
       </ScrollView>
     </View>

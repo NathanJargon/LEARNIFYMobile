@@ -2,6 +2,7 @@ import { createMaterialTopTabNavigator } from "@react-navigation/material-top-ta
 import { useEffect, useState } from "react";
 import { Snackbar } from "react-native-paper";
 import { StyleSheet } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import AppBar from "../components/AppBar";
 import Description from "../components/Course/Description";
@@ -9,13 +10,12 @@ import LearningMaterials from "../components/Course/LearningMaterials";
 import Activity from "../components/Course/Activity";
 import Forum from "../components/Course/Forum";
 import baseURL from "../utils/baseURL";
-import { getSecureStore } from "../utils/SecureStore";
 import { firebase } from "../utils/FirebaseConfig";
 import { getFirestore, doc, collection, getDocs, getDoc, query, where } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 export default function Course({ route }) {
-  const userToken = getSecureStore("userToken");
+  const [userToken, setUserToken] = useState(null);
   const [serverError, setServerError] = useState("");
   const Tab = createMaterialTopTabNavigator();
   const id = route.params.id;
@@ -24,18 +24,25 @@ export default function Course({ route }) {
   const [refreshing, setRefreshing] = useState(false);
   const [userEmail, setUserEmail] = useState(null);
 
+  useEffect(() => {
+    AsyncStorage.getItem('userToken').then(token => {
+      setUserToken(token);
+      console.log("User Token: " + token);
+    });
+  }, []);
+  
   console.log(userToken)
   useEffect(() => {
     const fetchCourse = async () => {
       const db = getFirestore();
       const courseDoc = doc(db, "courses", id);
   
-      const auth = getAuth();
-      const userEmail = auth.currentUser?.email;
+      // Get userEmail from AsyncStorage
+      const userEmail = await AsyncStorage.getItem('email');
       setUserEmail(userEmail); 
       setRefreshing(true);
-
-      console.log("User email :" + userEmail);
+  
+      console.log("User email :" + userEmail);  
 
       
       const courseSnapshot = await getDoc(courseDoc);

@@ -1,15 +1,17 @@
 import { StyleSheet, View, StatusBar, ScrollView } from "react-native";
 import { Button, Snackbar, Text, Portal, Modal } from "react-native-paper";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import QuestionCard from "../components/Quiz/QuestionCard";
 import { useEffect, useState } from "react";
-import { getSecureStore } from "../utils/SecureStore";
 import baseURL from "../utils/baseURL";
 import { getFirestore, doc, getDoc, updateDoc } from "firebase/firestore";
 import { firebase } from "../utils/FirebaseConfig";
 
+
 export default function Quiz({ route, navigation }) {
-  const id = route.params.id;
+  // Decode the ID before using it
+  const id = decodeURIComponent(route.params.id);
   const [serverError, setServerError] = useState("");
   const [quiz, setQuiz] = useState([]);
   const [visible, setVisible] = useState(false);
@@ -19,11 +21,13 @@ export default function Quiz({ route, navigation }) {
   const showModal = () => setVisible(true);
   const hideModal = () => setVisible(false);
   const [userToken, setUserToken] = useState(null);
+  const [userEmail, setUserEmail] = useState(null);
 
   useEffect(() => {
-    const token = getSecureStore("userToken");
-    setUserToken(token);
-    console.log("User Token: " + token);
+    AsyncStorage.getItem('email').then(email => {
+      console.log("User Email: " + email);
+      setUserEmail(email);
+    });
   }, []);
 
   const submitQuiz = async () => {
@@ -35,10 +39,7 @@ export default function Quiz({ route, navigation }) {
       }
     }
 
-    alert(`Your score: ${score}/${quiz.length}`);
-
-    const user = firebase.auth().currentUser;
-    const userEmail = user ? user.email : null;    
+    alert(`Your score: ${score}/${quiz.length}`);  
   
     if (userEmail) {
       console.log("User Email: " + userEmail);
@@ -79,6 +80,7 @@ export default function Quiz({ route, navigation }) {
         });
 
         console.log("Activity result has been saved.");
+        navigation.navigate("Course", {id: id});
       } else {
         console.log("No such document!");
       }

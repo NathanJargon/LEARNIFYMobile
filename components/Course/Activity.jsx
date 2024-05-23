@@ -9,8 +9,15 @@ export default function Activity({ activities }) {
     <Text style={{ color: theme.colors.secondary }}>No Activity</Text>
   ) : (
     activities.map((activity) => {
-      const title = activity.activityName || "Activity";  // Changed this line
-      const id = activity.userId;  // Changed this line
+      let title = activity.activityName || "Activity";
+      let id = activity.userId;
+
+      // Convert %20 back to spaces in title and id
+      title = title.replace(/%20/g, ' ');
+      id = id.replace(/%20/g, ' ');
+
+      console.log(title);
+      console.log(id);
 
       return <ActivityCard key={id} title={title} id={id} />;
     })

@@ -1,19 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { Alert, FlatList, KeyboardAvoidingView, StyleSheet, View, ScrollView } from "react-native";
+import { ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, StyleSheet, View, ScrollView } from "react-native";
 import { Text, TextInput } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 import { firebase } from "../../utils/FirebaseConfig";
 import { getFirestore, collection, getDocs } from "firebase/firestore";
 import { ReplyComment, PostComment } from "./ForumComment";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Forum({ forums, courseId }) {
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState(forums);
   const [isSubmitting, setIsSubmitting] = useState(false); // new state variable
+  const [email, setEmail] = useState("Anonymous");
+  const [isLoading, setIsLoading] = useState(true); // Add a loading state
 
   useEffect(() => {
+    AsyncStorage.getItem('email').then(email => {
+      setEmail(email);
+      setIsLoading(false); // Set loading to false after the email is retrieved
+    });
     setComments(forums);
-  }, [forums]);
+  }, [forums]);  
 
   const fetchComments = async () => {
     try {
@@ -41,6 +48,7 @@ export default function Forum({ forums, courseId }) {
       const newComment = {
         text: commentText,
         date: new Date(),
+        userEmail: email,
       };
   
       await db.collection('courses').doc(courseId).set({
@@ -60,13 +68,18 @@ export default function Forum({ forums, courseId }) {
   const renderItems = ({ item, index }) => {
     const date = item.date.toDate();
     const dateString = date.toLocaleString();
+    const user = item.userEmail || "Anonymous"; // Use userEmail if it exists, otherwise use "Anonymous"
 
     if (item.text.includes("Reply")) {
-      return <ReplyComment key={index} message={item.text} date={dateString} />;
+      return <ReplyComment key={index} message={item.text} date={dateString} user={user} />;
     } else {
-      return <PostComment key={index} message={item.text} date={dateString} />;
+      return <PostComment key={index} message={item.text} date={dateString} user={user} />; // Pass user prop to PostComment
     }
   };
+
+  if (isLoading) {
+    return <ActivityIndicator size="large" color="#0000ff" />;
+  }
 
   return (
     <View style={styles.container}>

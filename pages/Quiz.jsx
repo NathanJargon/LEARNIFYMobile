@@ -11,7 +11,7 @@ import { firebase } from "../utils/FirebaseConfig";
 
 export default function Quiz({ route, navigation }) {
   // Decode the ID before using it
-  const id = decodeURIComponent(route.params.id);
+  const id = route.params.id;
   const [serverError, setServerError] = useState("");
   const [quiz, setQuiz] = useState([]);
   const [visible, setVisible] = useState(false);
@@ -77,13 +77,20 @@ export default function Quiz({ route, navigation }) {
           });
         }
 
+        const courseId = activityData.ActivityResult.find(
+          (result) => result.userEmail === userEmail
+        )?.courseId;
+
         // Update the Firestore document
         await updateDoc(docRef, {
           ActivityResult: activityData.ActivityResult,
         });
 
         console.log("Activity result has been saved.");
-        navigation.navigate("Course", {id: id});
+
+        console.log("Id: " + id);
+
+        navigation.navigate("Course", {id: courseId});
       } else {
         console.log("No such document!");
       }

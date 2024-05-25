@@ -16,6 +16,7 @@ export default function Activity({ activities }) {
       title = title.replace(/%20/g, ' ');
       id = id.replace(/%20/g, ' ');
 
+      console.log("Activity userId: " + activity.userId);
       console.log(title);
       console.log(id);
 

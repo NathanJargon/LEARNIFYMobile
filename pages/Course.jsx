@@ -14,7 +14,7 @@ import { firebase } from "../utils/FirebaseConfig";
 import { getFirestore, doc, collection, getDocs, getDoc, query, where } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
-export default function Course({ route }) {
+export default function Course({ navigation, route }) {
   const [userToken, setUserToken] = useState(null);
   const [serverError, setServerError] = useState("");
   const Tab = createMaterialTopTabNavigator();
@@ -23,55 +23,83 @@ export default function Course({ route }) {
   const [course, setCourse] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [userEmail, setUserEmail] = useState(null);
+  const [needsRefresh, setNeedsRefresh] = useState(false);
 
   useEffect(() => {
     AsyncStorage.getItem('userToken').then(token => {
       setUserToken(token);
       console.log("User Token: " + token);
+      console.log("Course Recieved Id: " + id);
     });
   }, []);
   
   console.log(userToken)
+
   useEffect(() => {
     const fetchCourse = async () => {
-      const db = getFirestore();
-      const courseDoc = doc(db, "courses", id);
-  
-      // Get userEmail from AsyncStorage
-      const userEmail = await AsyncStorage.getItem('email');
-      setUserEmail(userEmail); 
-      setRefreshing(true);
-  
-      console.log("User email :" + userEmail);  
-
-      
-      const courseSnapshot = await getDoc(courseDoc);
-      if (courseSnapshot.exists()) {
-        setCourse({ id: courseSnapshot.id, ...courseSnapshot.data() });
-  
-        // Fetch related activities
-        try {
+      try {
+        const db = getFirestore();
+        const courseDoc = doc(db, "courses", id);
+    
+        // Get userEmail from AsyncStorage
+        const userEmail = await AsyncStorage.getItem('email');
+        setUserEmail(userEmail); 
+        setRefreshing(true);
+    
+        console.log("User email :" + userEmail);  
+        console.log("User id: " + id);
+    
+        const courseSnapshot = await getDoc(courseDoc);
+        if (courseSnapshot.exists()) {
+          setCourse({ id: courseSnapshot.id, ...courseSnapshot.data() });
+          console.log('Course after initial fetch:', course);  // Log the course after initial fetch
+    
+          // Fetch related activities
           const activitiesCollection = collection(db, 'activities');
           const activitiesQuery = query(activitiesCollection, where('courseId', '==', id));
           const activitiesSnapshot = await getDocs(activitiesQuery);
-          console.log('activitiesSnapshot:', activitiesSnapshot);  // Log the activitiesSnapshot
-  
+    
           const activities = activitiesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  
+          console.log('activities:', activities);  // Log the activities
+    
           // Add activities to course state
-          setCourse(course => ({ ...course, activities }));
-        } catch (error) {
-          console.log('Error fetching activities:', error);  // Log any errors
+          setCourse(course => {
+            console.log('Course before adding activities:', course);  // Log the course before adding activities
+            const updatedCourse = { ...course, activities };
+            console.log('Course after adding activities:', updatedCourse);  // Log the course after adding activities
+            return updatedCourse;
+          });
+        } else {
+          console.log("No such document!");
         }
-      } else {
-        console.log("No such document!");
+      } catch (error) {
+        console.log('Error in fetchCourse:', error);  // Log any errors or warnings
       }
     };
   
     fetchCourse();
-  }, [id]);
+  }, [id, needsRefresh]);
+  
+  console.log('Course in render:', course);  // Log the course in the render method
+  
 
   console.log(course);
+
+  
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      setNeedsRefresh(true);
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
+  useEffect(() => {
+    if (needsRefresh) {
+      setNeedsRefresh(false);
+    }
+  }, [needsRefresh]);
+
 
   const onDismissSnackBarHandler = () => setServerError("");
 
@@ -110,9 +138,10 @@ export default function Course({ route }) {
         />
         <Tab.Screen
           name="Activity"
-          children={(props) => (
-            <Activity activities={course?.activities} {...props} />
-          )}
+          children={(props) => {
+            console.log('Activities in Activity component:', course?.activities);  
+            return <Activity activities={course?.activities} {...props} />;
+          }}
         />
         <Tab.Screen
           name="Forum"

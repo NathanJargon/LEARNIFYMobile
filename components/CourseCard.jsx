@@ -16,40 +16,20 @@ export default function CourseCard({ course, userEmail }) {
 
       const activitySnapshot = await getDocs(activitiesCollection);
 
-      const totalActivities = activitySnapshot.docs.reduce((count, doc) => {
-        const data = doc.data();
-        if (data.courseId === course.id) {
-          count[data.courseId] = (count[data.courseId] || 0) + 1;
-        }
-        return count;
-      }, {});
+      const activities = activitySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-      console.log('Total activities:', totalActivities);
+      const totalActivities = activities.filter(activity => activity.courseId === course.id).length;
 
-      const completedActivities = activitySnapshot.docs.reduce((count, doc) => {
-        const data = doc.data();
-        if (data.courseId === course.id && data.ActivityResult) {
-          console.log('ActivityResult:', data.ActivityResult);
-          const userResult = data.ActivityResult.find(result => result.userEmail === userEmail);
-          console.log('userEmail:', userEmail);
-          console.log('userResult:', userResult);
-          if (userResult && userResult.score >= 0) {
-            count[data.courseId] = (count[data.courseId] || 0) + 1;
-          }
-        }
-        return count;
-      }, {});
+      const completedActivities = activities.reduce((count, activity) => {
+        const isCompleted = activity.courseId === course.id && activity.ActivityResult && activity.ActivityResult.some(result => result.userEmail === userEmail);
+        return isCompleted ? count + 1 : count;
+      }, 0);
 
-      console.log('Completed activities:', completedActivities);
+      console.log(`Total and completed activities for course ${course.id}:`, totalActivities, completedActivities);
 
-      const progress = {};
-      for (const courseId in totalActivities) {
-        progress[courseId] = completedActivities[courseId] / totalActivities[courseId];
-      }
+      const progressPercentage = totalActivities > 0 ? (completedActivities / totalActivities) : 0;
 
-      console.log('Progress:', progress);
-
-      setProgress(progress);
+      setProgress({ [course.id]: progressPercentage });
     };
 
     calculateProgress();

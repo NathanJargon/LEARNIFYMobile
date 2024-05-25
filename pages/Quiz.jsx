@@ -63,23 +63,25 @@ export default function Quiz({ route, navigation }) {
           (result) => result.userEmail === userEmail
         );
 
+        const courseId = activityData.ActivityResult.find(
+          (result) => result.userEmail === userEmail
+        )?.courseId;
+    
         if (existingResultIndex !== -1) {
           // If a result for the current user already exists, replace it with the new result
           activityData.ActivityResult[existingResultIndex] = {
             userEmail: userEmail,
             score: score,
+            courseId: courseId,  // Add the courseId
           };
         } else {
           // If no result for the current user exists, add the new result
           activityData.ActivityResult.push({
             userEmail: userEmail,
             score: score,
+            courseId: courseId,  // Add the courseId
           });
         }
-
-        const courseId = activityData.ActivityResult.find(
-          (result) => result.userEmail === userEmail
-        )?.courseId;
 
         // Update the Firestore document
         await updateDoc(docRef, {

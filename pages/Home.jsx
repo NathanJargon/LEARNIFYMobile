@@ -27,7 +27,7 @@ export default function Home() {
 
   useEffect(() => {
     const filteredCourses = originalCourseData.filter((course) =>
-      course.courseName.toLowerCase().includes(searchQuery.toLowerCase())
+      typeof course.courseName === 'string' && course.courseName.toLowerCase().includes(searchQuery.toLowerCase())
     );
     setCourses(filteredCourses);
   }, [searchQuery, originalCourseData]);

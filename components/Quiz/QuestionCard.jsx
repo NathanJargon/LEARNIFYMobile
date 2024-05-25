@@ -2,8 +2,13 @@ import React, { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { RadioButton, Text } from "react-native-paper";
 
-export default function QuestionCard({ questionNumber, question, choices }) {
+export default function QuestionCard({ questionNumber, question, choices, onAnswerSelect }) {
   const [answer, setAnswer] = useState("first");
+
+  useEffect(() => {
+    // Call the onAnswerSelect function whenever the answer state changes
+    onAnswerSelect(answer);
+  }, [answer]);
 
   const QuestionContent = (
     <RadioButton.Group

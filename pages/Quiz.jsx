@@ -32,14 +32,17 @@ export default function Quiz({ route, navigation }) {
 
   const submitQuiz = async () => {
     let score = 0;
-
+    
     for (let i = 0; i < quiz.length; i++) {
-      if (answers[i] === quiz[i].correctAnswer) {
+      console.log(`Question ${i + 1}: Selected answer index = ${answers[i]}, Correct answer index = ${quiz[i].correctAnswer}`);
+      
+      if (Number(answers[i]) === Number(quiz[i].correctAnswer)) {
         score++;
       }
     }
-
+    
     alert(`Your score: ${score}/${quiz.length}`);  
+
   
     if (userEmail) {
       console.log("User Email: " + userEmail);
@@ -103,7 +106,8 @@ export default function Quiz({ route, navigation }) {
 
       if (docSnap.exists()) {
         console.log('Document data:', docSnap.data()); // Log the fetched data
-        setQuiz(docSnap.data().questions); // assuming "questions" is the field name in your document
+        setQuiz(docSnap.data().questions);
+        setAnswers(new Array(docSnap.data().questions.length).fill(-1));      
         setActivityName(docSnap.data().activityName); // replace "activityName" with your field name
         setActivityNumber(docSnap.data().activityNumber); // replace "activityNumber" with your field name
       } else {
@@ -115,20 +119,27 @@ export default function Quiz({ route, navigation }) {
     }
   };
 
-  const handleAnswerSelect = (answer) => {
+  const handleAnswerSelect = (answer, index) => {
+    // Find the index of the selected answer
+    const answerIndex = quiz[index].choices.indexOf(answer);
+  
+    console.log(`Selected answer index: ${answerIndex}`); // Log the index of the selected answer
+  
     // Update the answer for the current question
     const newAnswers = [...answers];
-    newAnswers[questionNumber - 1] = answer;
+    newAnswers[index] = answerIndex;
     setAnswers(newAnswers);
+  
+    console.log(newAnswers);
   };
-
+  
   const Questions = quiz.map((question, index) => (
     <QuestionCard
       key={index}
       questionNumber={index + 1}
       question={question.question}
       choices={question.choices}
-      onAnswerSelect={handleAnswerSelect}
+      onAnswerSelect={(answer) => handleAnswerSelect(answer, index)}
     />
   ));
 
